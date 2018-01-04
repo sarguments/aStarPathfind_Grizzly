@@ -1,5 +1,8 @@
 #pragma once
 
+#define GRID_LEN 20
+#define GRID_NUM 20
+
 struct Node
 {
 	int _x;
@@ -10,7 +13,7 @@ struct Node
 	int _f;
 };
 
-extern char g_map[300][300];
+extern char g_map[GRID_NUM][GRID_NUM];
 extern std::list<Node*> g_openList;// -Heap..F 작은 노드... x, y 검색
 extern std::list<Node*> g_closeList; // -List..x, y 검색
 
