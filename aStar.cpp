@@ -1,12 +1,11 @@
 #include "stdafx.h"
 #include "aStar.h"
 
-// TODO : 생성 나중에 하게 바꾸기
-// TODO : 다음 노드 리턴하게
+// TODO : out변수 둬서 결과 리턴하게
 
 bool PathFind(int Sx, int Sy, int Ex, int Ey)
 {
-	// TODO : 완료 여부
+	// 못 찾는 경우
 	if (g_openList.size() == 0)
 	{
 		return false;
@@ -26,13 +25,13 @@ bool PathFind(int Sx, int Sy, int Ex, int Ey)
 		g_map[popNode->_y][popNode->_x] = nColor::CLOSE;
 	}
 
-	// TODO : 끝인가?
+	// 끝인가
 	if (popNode->_x == g_endPos._x &&
 		popNode->_y == g_endPos._y)
 	{
 		g_endPos._parent = popNode;
 
-		// TODO : 연결..
+		// 찾기 결과 그리기 위한 연결
 		return true;
 	}
 
@@ -89,28 +88,28 @@ void in_makeNode(Node * parent, int X, int Y)
 {
 	if (CheckTile(X, Y))
 	{
-		Node* newNode = new Node();
-		newNode->_parent = parent;
-		newNode->_x = X;
-		newNode->_y = Y;
+		Node localNode;
+		localNode._parent = parent;
+		localNode._x = X;
+		localNode._y = Y;
 
 		if (X != parent->_x && Y != parent->_y)
 		{
-			newNode->_g = parent->_g + 1.4f;
+			localNode._g = parent->_g + 1.4f;
 		}
 		else
 		{
-			newNode->_g = parent->_g + 1;
+			localNode._g = parent->_g + 1;
 		}
 
-		newNode->_h = (float)abs(X - g_endPos._x) + (float)abs(Y - g_endPos._y);
-		newNode->_f = newNode->_g + newNode->_h;
+		localNode._h = (float)abs(X - g_endPos._x) + (float)abs(Y - g_endPos._y);
+		localNode._f = localNode._g + localNode._h;
 
 		// 일치하는 노드를 찾고
 		auto iter = std::find_if(g_openList.begin(), g_openList.end(),
 			[=](Node* param) {
-			if (param->_x == newNode->_x &&
-				param->_y == newNode->_y)
+			if (param->_x == localNode._x &&
+				param->_y == localNode._y)
 			{
 				return true;
 			}
@@ -123,12 +122,12 @@ void in_makeNode(Node * parent, int X, int Y)
 
 			while (1)
 			{
-				// TODO : g값 큰것 찾음 , Close는?
+				// TODO : g값 큰것 찾음
 				auto iter = std::find_if(g_openList.begin(), g_openList.end(),
 					[=](Node* param) {
-					if (param->_x == newNode->_x &&
-						param->_y == newNode->_y &&
-						param->_g > newNode->_g)
+					if (param->_x == localNode._x &&
+						param->_y == localNode._y &&
+						param->_g > localNode._g)
 					{
 						return true;
 					}
@@ -138,16 +137,17 @@ void in_makeNode(Node * parent, int X, int Y)
 				if (iter != g_openList.end())
 				{
 					// TODO : 찾음
-					(*iter)->_parent = newNode->_parent;
+					// 해당 노드의 부모를 localNode(x,y 위치는 같지만 g가 더 작은)의 부모로 변경
+					(*iter)->_parent = localNode._parent;
 
 					// 부모 바꿨으면 재계산
-					(*iter)->_g = newNode->_g;
-					//(*iter)->_h = (float)abs((*iter)->_x - g_endPos._x) + (float)abs((*iter)->_y - g_endPos._y);
+					(*iter)->_g = localNode._g;
 					(*iter)->_f = (*iter)->_g + (*iter)->_h;
 
 					// 재정렬.. f값이 작은게 앞으로
 					g_openList.sort([](Node* a, Node* b)
-					{	// true 가 앞으로, false가 뒤로
+					{
+						// true 가 앞으로, false가 뒤로
 						return a->_f < b->_f;
 					});
 				}
@@ -157,15 +157,14 @@ void in_makeNode(Node * parent, int X, int Y)
 				}
 			}
 
-			delete newNode;
 			return;
 		}
 
 		// 일치하는 노드를 찾고
 		iter = std::find_if(g_closeList.begin(), g_closeList.end(),
 			[=](Node* param) {
-			if (param->_x == newNode->_x &&
-				param->_y == newNode->_y)
+			if (param->_x == localNode._x &&
+				param->_y == localNode._y)
 			{
 				return true;
 			}
@@ -178,12 +177,12 @@ void in_makeNode(Node * parent, int X, int Y)
 
 			while (1)
 			{
-				// TODO : g값 큰것 찾음 , Close는?
+				// TODO : g값 큰것 찾음
 				auto iter = std::find_if(g_closeList.begin(), g_closeList.end(),
 					[=](Node* param) {
-					if (param->_x == newNode->_x &&
-						param->_y == newNode->_y &&
-						param->_g > newNode->_g)
+					if (param->_x == localNode._x &&
+						param->_y == localNode._y &&
+						param->_g > localNode._g)
 					{
 						return true;
 					}
@@ -193,11 +192,11 @@ void in_makeNode(Node * parent, int X, int Y)
 				if (iter != g_closeList.end())
 				{
 					// TODO : 찾음
-					(*iter)->_parent = newNode->_parent;
+					// 해당 노드의 부모를 localNode(x,y 위치는 같지만 g가 더 작은)의 부모로 변경
+					(*iter)->_parent = localNode._parent;
 
 					// 부모 바꿨으면 재계산
-					(*iter)->_g = newNode->_g;
-					//(*iter)->_h = (float)abs((*iter)->_x - g_endPos._x) + (float)abs((*iter)->_y - g_endPos._y);
+					(*iter)->_g = localNode._g;
 					(*iter)->_f = (*iter)->_g + (*iter)->_h;
 
 					// 재정렬.. f값이 작은게 앞으로
@@ -212,12 +211,21 @@ void in_makeNode(Node * parent, int X, int Y)
 				}
 			}
 
-			delete newNode;
 			return;
 		}
 
+		// 노드 실제로 만들어서 오픈리스트에 넣는다
+		Node* newNode = new Node();
+		newNode->_parent = localNode._parent;
+		newNode->_x = localNode._x;
+		newNode->_y = localNode._y;
+		newNode->_g = localNode._g;
+		newNode->_h = localNode._h;
+		newNode->_f = localNode._f;
+
 		g_openList.push_front(newNode);
 
+		// 색지정
 		if (g_map[newNode->_y][newNode->_x] != nColor::START &&
 			g_map[newNode->_y][newNode->_x] != nColor::END)
 		{
